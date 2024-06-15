@@ -44,7 +44,6 @@ namespace chmodPermissions
 
 				int handle = _nextHandle++;
 				_handles[handle]=(path,read, write);
-				Console.WriteLine($"After register  {handle} pernissions{_currentPermissions[path]}");
 				return handle;
 			}
 
@@ -59,13 +58,11 @@ namespace chmodPermissions
 					throw new InvalidOperationException("Invalid Handle");
 				}
 				var (path, read, write) = handleInfo;
-				//Console.WriteLine($"Before Unregisster {handle} pernissions{_currentPermissions[path]}");
 				if (_refCounts.AddOrUpdate(path,0,(key ,count)=> count - 1) == 0)
 				{
 					_refCounts.TryRemove(path, out _);
 					_currentPermissions [path] = _originalPermissions[path];    
 					_originalPermissions.TryRemove(path, out _);
-					Console.WriteLine($"Permission after Unregister handle{handle} :{_currentPermissions[path]}");
 				}
 				else
 				{
@@ -91,9 +88,7 @@ namespace chmodPermissions
 					{
 						newPermissions = newPermissions.Remove(_fileSettings.WriteIndex, 1).Insert(_fileSettings.WriteIndex, "-");
 					}
-
 					_currentPermissions[path] = newPermissions;
-					Console.WriteLine($"Permission after Unregister handle{handle} :{_currentPermissions[path]}");
 				}
 			}
 		}
