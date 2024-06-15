@@ -6,10 +6,10 @@ namespace chmodPermissions
 {
 	public class ChmodPermissionManager : IRegister
 	{
-		private readonly ConcurrentDictionary<string, int> _refCounts = []; //refs by path 
-		private readonly ConcurrentDictionary<string, string> _originalPermissions = []; // file orignal permissions 
-		private readonly ConcurrentDictionary<string, string> _currentPermissions = []; // file current permissions 
-		private readonly ConcurrentDictionary<int, (string path, bool read, bool write)> _handles = [];
+		private readonly ConcurrentDictionary<string, int> _refCounts = new ();// References by path
+		private readonly ConcurrentDictionary<string, string> _originalPermissions = new(); // File original permissions 
+		private readonly ConcurrentDictionary<string, string> _currentPermissions =new(); // File current permissions  
+		private readonly ConcurrentDictionary<int, (string path, bool read, bool write)> _handles = new();
 		private readonly object _lock = new();
 		private int _nextHandle;
 		private readonly FilePermissionsSettings _fileSettings;
@@ -100,7 +100,7 @@ namespace chmodPermissions
 
 		private string GetPermissioms(string path)
 		{
-			return "-rw-r-----";
+			return _fileSettings.DefaultPermissions;
 		}
 	}
 }
