@@ -3,7 +3,6 @@ using chmodPermissions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 
 var builder = Host.CreateDefaultBuilder(args)
 		   .ConfigureAppConfiguration((hostingContext, config) =>
@@ -32,4 +31,4 @@ int handle4 = manager.Register("secret.txt", true, false);
 manager.Unregister(handle3);
 manager.Unregister(handle4);
 
-host.Run(); // Run the application if necessary
+host.Run(); 
