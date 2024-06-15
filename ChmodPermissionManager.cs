@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Options;
+
 
 namespace chmodPermissions
 {
@@ -16,34 +10,41 @@ namespace chmodPermissions
 		private readonly ConcurrentDictionary<string, string> _originalPermissions = []; // file orignal permissions 
 		private readonly ConcurrentDictionary<string, string> _currentPermissions = []; // file current permissions 
 		private readonly ConcurrentDictionary<int, (string path, bool read, bool write)> _handles = [];
-		private readonly object _lock = new object();
-		private int _nextHandle = 1;
+		private readonly object _lock = new();
+		private int _nextHandle;
+		private readonly FilePermissionsSettings _fileSettings;
+
+		public ChmodPermissionManager(IOptions<FilePermissionsSettings> filePermissionsOptions)
+		{
+			_fileSettings = filePermissionsOptions.Value;
+			_nextHandle = 1;
+		}
 
 		public int Register(string path, bool read, bool write)
 		{
 			lock (_lock)
 			{
-				if (!_originalPermissions.ContainsKey(path)) //store orignal permissions to be rstored 
+				if (!_originalPermissions.ContainsKey(path)) //store orignal permissions to be restored 
 				{
 					_originalPermissions[path] = GetPermissioms(path);
 					_currentPermissions[path] = _originalPermissions[path];
 				}
-				//Console.WriteLine($"Before register pernissions{_currentPermissions[path]}");
 
 				_refCounts.AddOrUpdate(path, 1, (key, count) => count + 1); // add ref 
 				string newPermissions = _currentPermissions[path];
-				if (read & newPermissions[7] != 'r')
+				if (read && newPermissions[_fileSettings.ReadIndex] != 'r')
 				{
-					newPermissions = newPermissions.Remove(7,1).Insert(7, "r");
+					newPermissions = newPermissions.Remove(_fileSettings.ReadIndex, 1).Insert(_fileSettings.ReadIndex, "r");
 				}
-				 if (write & newPermissions[8] != 'w')
+				if (write && newPermissions[_fileSettings.WriteIndex] != 'w')
 				{
-					newPermissions = newPermissions.Remove(8,1).Insert(8, "w");
+					newPermissions = newPermissions.Remove(_fileSettings.WriteIndex, 1).Insert(_fileSettings.WriteIndex, "w");
 				}
 				_currentPermissions[path] = newPermissions;
+
 				int handle = _nextHandle++;
 				_handles[handle]=(path,read, write);
-				Console.WriteLine($"After register  {handle}pernissions{_currentPermissions[path]}");
+				Console.WriteLine($"After register  {handle} pernissions{_currentPermissions[path]}");
 				return handle;
 			}
 
@@ -64,7 +65,6 @@ namespace chmodPermissions
 					_refCounts.TryRemove(path, out _);
 					_currentPermissions [path] = _originalPermissions[path];    
 					_originalPermissions.TryRemove(path, out _);
-					_handles.TryRemove(handle, out _);
 					Console.WriteLine($"Permission after Unregister handle{handle} :{_currentPermissions[path]}");
 				}
 				else
@@ -83,13 +83,13 @@ namespace chmodPermissions
 
 					string newPermissions = _currentPermissions[path];
 
-					if (!anyRead && newPermissions[7] == 'r')
+					if (!anyRead && newPermissions[_fileSettings.ReadIndex] == 'r')
 					{
-						newPermissions = newPermissions.Remove(7, 1).Insert(7, "-");
+						newPermissions = newPermissions.Remove(_fileSettings.ReadIndex, 1).Insert(_fileSettings.ReadIndex, "-");
 					}
-					if (!anyWrite && newPermissions[8] == 'w')
+					if (!anyWrite && newPermissions[_fileSettings.WriteIndex] == 'w')
 					{
-						newPermissions = newPermissions.Remove(8, 1).Insert(8, "-");
+						newPermissions = newPermissions.Remove(_fileSettings.WriteIndex, 1).Insert(_fileSettings.WriteIndex, "-");
 					}
 
 					_currentPermissions[path] = newPermissions;
