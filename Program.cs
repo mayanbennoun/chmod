@@ -30,5 +30,6 @@ int handle3 = manager.Register("secret.txt", true, true);
 int handle4 = manager.Register("secret.txt", true, false);
 manager.Unregister(handle3);
 manager.Unregister(handle4);
+int handle5 = manager.Register("xxxxxx.txt", true, true);
 
 host.Run(); 
