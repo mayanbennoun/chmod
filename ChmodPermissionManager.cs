@@ -4,6 +4,9 @@ using Microsoft.Extensions.Options;
 
 namespace chmodPermissions
 {
+	/// <summary>
+	/// Class that handles chmod permissions
+	/// </summary>
 	public class ChmodPermissionManager : IRegister
 	{
 		private readonly ConcurrentDictionary<string, int> _refCounts = new ();// References by path
@@ -20,13 +23,20 @@ namespace chmodPermissions
 			_nextHandle = 1;
 		}
 
+		/// <summary>
+		/// Register new handle to file
+		/// </summary>
+		/// <param name="path"> file path</param>
+		/// <param name="read">others read permission</param>
+		/// <param name="write"> others write permission</param>
+		/// <returns> new handle index </returns>
 		public int Register(string path, bool read, bool write)
 		{
 			lock (_lock)
 			{
 				if (!_originalPermissions.ContainsKey(path)) //store orignal permissions to be restored 
 				{
-					_originalPermissions[path] = GetPermissioms(path);
+					_originalPermissions[path] = GetDefaultPermissioms();
 					_currentPermissions[path] = _originalPermissions[path];
 				}
 
@@ -49,6 +59,11 @@ namespace chmodPermissions
 
 		}
 
+		/// <summary>
+		/// Unregister existing file handle
+		/// </summary>
+		/// <param name="handle"> handle index to remove</param>
+		/// <exception cref="InvalidOperationException">raised if given an Invalid handler</exception>
 		public void Unregister(int handle)
 		{
 			lock (_lock)
@@ -93,9 +108,13 @@ namespace chmodPermissions
 			}
 		}
 
-		private string GetPermissioms(string path)
+		/// <summary>
+		/// fetch file default permission by path 
+		/// </summary>
+		/// <returns></returns>
+		private string GetDefaultPermissioms()
 		{
-			return _fileSettings.DefaultPermissions;
+			return _fileSettings.DefaultPermissions ;
 		}
 	}
 }

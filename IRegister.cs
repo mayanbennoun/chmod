@@ -1,5 +1,8 @@
 ﻿namespace chmodPermissions
 {
+	/// <summary>
+	/// Interface to expose Register and Unregister Opreations
+	/// </summary>
 	public interface IRegister
 	{
 		/// <summary>
