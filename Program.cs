@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 var builder = Host.CreateDefaultBuilder(args)
 		   .ConfigureAppConfiguration((hostingContext, config) =>
 		   {
-			   config.SetBasePath("E:\\HomeAssigmnets\\chmodPermissions")
+			   config.SetBasePath(Directory.GetCurrentDirectory().Replace("\\bin\\Debug\net8.0",""))
 				   .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
 				   .AddEnvironmentVariables()
 				   .AddCommandLine(args);
